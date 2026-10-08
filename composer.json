@@ -1,0 +1,51 @@
+{
+  "name": "kraenzle-ritter/format-policy",
+  "description": "A format policy registry and preingest for Laravel, on the pattern of Archivematica's FPR: tools, commands and rules that normalise files before they are ingested, verified and recorded.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": ["archives", "digital-preservation", "format-policy", "preingest", "tiff", "pronom", "siegfried", "laravel"],
+  "homepage": "https://github.com/kraenzle-ritter/format-policy",
+  "support": {
+    "issues": "https://github.com/kraenzle-ritter/format-policy/issues",
+    "source": "https://github.com/kraenzle-ritter/format-policy"
+  },
+  "authors": [
+    { "name": "Kraenzle & Ritter", "email": "info@k-r.ch" }
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^12.0",
+    "illuminate/process": "^12.0",
+    "illuminate/filesystem": "^12.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^10.0",
+    "phpunit/phpunit": "^11.0",
+    "larastan/larastan": "^3.0",
+    "laravel/pint": "^1.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "KraenzleRitter\\FormatPolicy\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "KraenzleRitter\\FormatPolicy\\Tests\\": "tests/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "KraenzleRitter\\FormatPolicy\\FormatPolicyServiceProvider"
+      ]
+    }
+  },
+  "scripts": {
+    "test": "phpunit",
+    "analyse": "phpstan analyse",
+    "format": "pint"
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
