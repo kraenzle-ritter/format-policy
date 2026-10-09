@@ -10,9 +10,8 @@ use KraenzleRitter\FormatPolicy\Handlers\TiffCharacteristics;
 | The format policy catalogue
 |--------------------------------------------------------------------------
 |
-| What a program does to a file, by format — on the pattern of
-| Archivematica's Format Policy Registry. Three kinds of entries, each under
-| a stable key:
+| What a program does to a file, by format. Three kinds of entries, each
+| under a stable key:
 |
 |   tools     a program, and how to ask it for its version
 |   commands  how a tool is called: transform | verify | identify | characterize

@@ -1,9 +1,8 @@
 # kraenzle-ritter/format-policy
 
-A format policy registry and preingest for Laravel, on the pattern of
-Archivematica's Format Policy Registry (FPR).
-Used by Anton (archival description) and agate (SIP
-preparation), so that both apply the same rules under the same keys.
+A format policy registry and preingest for Laravel. Used by Anton (archival
+description) and agate (SIP preparation), so that both apply the same rules
+under the same keys.
 
 Before a file is ingested, the preingest identifies it, applies the rules in
 force for the tenant and the route the file came by, verifies each result and

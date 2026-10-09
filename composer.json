@@ -1,6 +1,6 @@
 {
   "name": "kraenzle-ritter/format-policy",
-  "description": "A format policy registry and preingest for Laravel, on the pattern of Archivematica's FPR: tools, commands and rules that normalise files before they are ingested, verified and recorded.",
+  "description": "A format policy registry and preingest for Laravel: tools, commands and rules that normalise files before they are ingested, verified and recorded.",
   "type": "library",
   "license": "MIT",
   "keywords": ["archives", "digital-preservation", "format-policy", "preingest", "tiff", "pronom", "siegfried", "laravel"],
