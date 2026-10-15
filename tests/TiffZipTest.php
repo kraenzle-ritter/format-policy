@@ -11,6 +11,7 @@ use KraenzleRitter\FormatPolicy\FormatPolicyRepository;
 use KraenzleRitter\FormatPolicy\Preingest;
 use KraenzleRitter\FormatPolicy\Preingest\PreingestResult;
 use KraenzleRitter\FormatPolicy\Preingest\RuleOutcome;
+use KraenzleRitter\FormatPolicy\Preingest\RuleVerdict;
 use KraenzleRitter\FormatPolicy\RuleSwitches;
 
 /**
@@ -147,6 +148,22 @@ final class TiffZipTest extends TestCase
 
         $preview = $runner->characterize('tiff_characteristics', $this->fixture('preview_ifd1.tif'));
         $this->assertSame([1, 1], [$preview['pages'], $preview['previews']]);
+    }
+
+    public function test_the_probe_says_per_file_whether_the_rule_applies_and_why_not(): void
+    {
+        $probe = fn (string $fixture) => app(Preingest::class)->probe($this->fixture($fixture), 'media_add');
+
+        $uncompressed = $probe('uncompressed.tif');
+        $this->assertSame(RuleVerdict::APPLIES, $uncompressed->verdicts[0]->verdict);
+        $this->assertSame('fmt/353', $uncompressed->identification->pronomId);
+        $this->assertSame('none', $uncompressed->characteristics['tiff_characteristics']['facts']['compression']);
+        $this->assertSame('exiftool', $uncompressed->characteristics['tiff_characteristics']['tool']);
+
+        $this->assertSame(['compression' => 'deflate', 'predictor' => 2], $probe('deflate_predictor2.tif')->verdicts[0]->condition);
+        $this->assertSame(['compression' => 'jpeg'], $probe('jpeg.tif')->verdicts[0]->condition);
+        $this->assertSame(['bits_per_sample' => 1], $probe('g4.tif')->verdicts[0]->condition);
+        $this->assertSame(RuleVerdict::OTHER_FORMAT, $probe('blank.pdf')->verdicts[0]->verdict);
     }
 
     public function test_different_pixels_fail_the_verification(): void

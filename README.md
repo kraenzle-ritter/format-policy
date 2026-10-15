@@ -71,6 +71,13 @@ MIME type before and after.
 it; `PreingestForecast::forFiles()` estimates, by extension and MIME type
 only, how many files of an import a rule may act on.
 
+`Preingest::probe()` is the dry run for one file: it identifies the file, runs
+the prechecks and gives every rule in force on the route a `RuleVerdict` —
+`applies`, `other_format`, `precheck` (with the `skip_when` entry that
+vetoed it), `precheck_failed` or `tools_missing` (with the tools) — together
+with the facts the prechecks measured. Nothing is converted. To learn the size
+after a conversion, run `run()` and `cleanup()` the result.
+
 ## Switches per tenant
 
 Whether a rule is in force is decided per tenant by a `SwitchStore`; a rule's

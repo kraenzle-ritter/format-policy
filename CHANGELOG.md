@@ -6,6 +6,11 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-15
+
+### Added
+- `Preingest::probe()`: a dry run for one file that converts nothing. It returns a `Probe` with the identification, the facts each precheck measured (with tool and version), and a `RuleVerdict` for every rule in force on the route: `applies`, `other_format`, `precheck` (with the vetoing `skip_when` entry), `precheck_failed` or `tools_missing` (with the tools). Rules whose tools are missing are named instead of being left out.
+
 ## [0.1.0] - 2026-10-08
 
 ### Added

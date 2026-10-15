@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 use KraenzleRitter\FormatPolicy\Preingest\PlannedRule;
 use KraenzleRitter\FormatPolicy\Preingest\PreingestResult;
+use KraenzleRitter\FormatPolicy\Preingest\Probe;
 use KraenzleRitter\FormatPolicy\Preingest\RuleOutcome;
+use KraenzleRitter\FormatPolicy\Preingest\RuleVerdict;
 use Throwable;
 
 /**
@@ -113,6 +115,53 @@ final class Preingest
     }
 
     /**
+     * What the preingest would do to a file, and why — a dry run that
+     * converts nothing and leaves no working directory.
+     *
+     * Every rule in force on the route gets a verdict, including those this
+     * server lacks the tools for, which run() leaves out silently. What the
+     * prechecks measured comes along, by command. Optional rules are judged
+     * as well: deselecting one is a decision of the run, not of the file.
+     */
+    public function probe(string $path, string|BackedEnum $source): Probe
+    {
+        $admitted = $this->admitted($source);
+        if ($admitted === []) {
+            return new Probe($path, @filesize($path), Identification::unknown(), [], []);
+        }
+
+        $identification = $this->identify($path);
+        $characteristics = [];
+        $verdicts = [];
+
+        foreach ($admitted as [$rule, $missing]) {
+            $verdict = fn (string $verdict, array $condition = []): RuleVerdict => new RuleVerdict(
+                $rule->key, $rule->label->in(), $rule->description->in(), $rule->optional, $verdict, $condition, $missing,
+            );
+
+            if (! $rule->matchesFormat($identification->mimeType, $identification->pronomId, pathinfo($path, PATHINFO_EXTENSION))) {
+                $verdicts[] = $verdict(RuleVerdict::OTHER_FORMAT);
+
+                continue;
+            }
+            if ($missing !== []) {
+                $verdicts[] = $verdict(RuleVerdict::TOOLS_MISSING);
+
+                continue;
+            }
+
+            $characterization = null;
+            [$judgement, $condition] = $this->judge($rule, $path, $identification, $characterization);
+            if ($characterization !== null) {
+                $characteristics[$characterization['command']] = $characterization;
+            }
+            $verdicts[] = $verdict($judgement, $condition);
+        }
+
+        return new Probe($path, @filesize($path), $identification, $characteristics, $verdicts);
+    }
+
+    /**
      * The rules in force for this tenant and this route whose tools this
      * server has — what an upload form announces.
      *
@@ -122,11 +171,8 @@ final class Preingest
     {
         $rules = [];
 
-        foreach ($this->switches->inForce(self::PHASE) as $rule) {
-            if (! $rule->admits($source)) {
-                continue;
-            }
-            if (($missing = $this->runner->missingTools($rule)) !== []) {
+        foreach ($this->admitted($source) as [$rule, $missing]) {
+            if ($missing !== []) {
                 logger()->warning('Preingest: «'.$rule->key.'» not applied, missing tools: '.implode(', ', $missing));
 
                 continue;
@@ -135,6 +181,25 @@ final class Preingest
         }
 
         return $rules;
+    }
+
+    /**
+     * The rules switched on for this tenant that admit the route, each with
+     * the tools this server lacks for it.
+     *
+     * @return list<array{Rule, list<string>}>
+     */
+    private function admitted(string|BackedEnum $source): array
+    {
+        $admitted = [];
+
+        foreach ($this->switches->inForce(self::PHASE) as $rule) {
+            if ($rule->admits($source)) {
+                $admitted[] = [$rule, $this->runner->missingTools($rule)];
+            }
+        }
+
+        return $admitted;
     }
 
     /**
@@ -182,19 +247,33 @@ final class Preingest
      */
     private function applies(Rule $rule, string $file, Identification $identification, ?array &$characterization = null): bool
     {
+        return $this->judge($rule, $file, $identification, $characterization)[0] === RuleVerdict::APPLIES;
+    }
+
+    /**
+     * The verdict on a rule for a file, with the `skip_when` entry that
+     * vetoed it. The tools are not looked at here: run() and plan() only
+     * judge rules whose tools are present, probe() names the missing ones
+     * before it gets here.
+     *
+     * @param  array{command: string, tool: string|null, version: string|null, facts: array<string, scalar|null>}|null  $characterization
+     * @return array{string, array<string, mixed>}
+     */
+    private function judge(Rule $rule, string $file, Identification $identification, ?array &$characterization = null): array
+    {
         if (! $rule->matchesFormat($identification->mimeType, $identification->pronomId, pathinfo($file, PATHINFO_EXTENSION))) {
-            return false;
+            return [RuleVerdict::OTHER_FORMAT, []];
         }
 
         if ($rule->precheck === null) {
-            return true;
+            return [RuleVerdict::APPLIES, []];
         }
 
         $characterized = $this->characterize($rule->precheck, $file);
         if ($characterized === null) {
             logger()->warning('Preingest: precheck of «'.$rule->key.'» failed, rule not applied');
 
-            return false;
+            return [RuleVerdict::PRECHECK_FAILED, []];
         }
         $characterization = $characterized;
         $facts = $characterized['facts'];
@@ -203,11 +282,11 @@ final class Preingest
             if ($this->allMatch((array) $condition, $facts)) {
                 logger()->debug('Preingest: «'.$rule->key.'» left out by its precheck', ['file' => basename($file), 'facts' => $facts]);
 
-                return false;
+                return [RuleVerdict::PRECHECK, (array) $condition];
             }
         }
 
-        return true;
+        return [RuleVerdict::APPLIES, []];
     }
 
     /**

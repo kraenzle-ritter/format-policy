@@ -14,6 +14,7 @@ use KraenzleRitter\FormatPolicy\Identification;
 use KraenzleRitter\FormatPolicy\Preingest;
 use KraenzleRitter\FormatPolicy\Preingest\PreingestResult;
 use KraenzleRitter\FormatPolicy\Preingest\RuleOutcome;
+use KraenzleRitter\FormatPolicy\Preingest\RuleVerdict;
 use KraenzleRitter\FormatPolicy\Verification;
 
 /**
@@ -242,6 +243,79 @@ final class PreingestTest extends TestCase
         $this->assertSame($before, (array) glob(storage_path('framework/preingest/*')), 'no working directory');
     }
 
+    public function test_the_probe_says_a_rule_applies_and_changes_nothing(): void
+    {
+        $this->usePolicy(['optional' => true, 'precheck' => ['command' => 'qj_check', 'skip_when' => [['packed' => true]]]]);
+        $file = $this->textFile();
+        $md5 = md5_file($file);
+        $before = (array) glob(storage_path('framework/preingest/*'));
+
+        $probe = app(Preingest::class)->probe($file, 'upload');
+
+        $this->assertSame('x-fmt/111', $probe->identification->pronomId);
+        $this->assertSame(filesize($file), $probe->size);
+        $this->assertCount(1, $probe->verdicts);
+        $this->assertSame(['qj_half', RuleVerdict::APPLIES, true], [$probe->verdicts[0]->rule, $probe->verdicts[0]->verdict, $probe->verdicts[0]->optional]);
+        $this->assertCount(1, $probe->applying());
+        $this->assertSame(['packed' => false], $probe->characteristics['qj_check']['facts'], 'what the precheck measured');
+        $this->assertSame($md5, md5_file($file));
+        $this->assertSame($before, (array) glob(storage_path('framework/preingest/*')), 'no working directory');
+    }
+
+    public function test_the_probe_names_the_condition_that_vetoed_a_rule(): void
+    {
+        $this->usePolicy(['precheck' => ['command' => 'qj_check', 'skip_when' => [['packed' => false], ['packed' => true]]]]);
+
+        $verdict = app(Preingest::class)->probe($this->textFile('PACKED and some more text'), 'upload')->verdicts[0];
+
+        $this->assertSame(RuleVerdict::PRECHECK, $verdict->verdict);
+        $this->assertSame(['packed' => true], $verdict->condition);
+        $this->assertFalse($verdict->applies());
+    }
+
+    public function test_the_probe_names_a_file_of_another_format(): void
+    {
+        $this->usePolicy([]);
+
+        $probe = app(Preingest::class)->probe($this->textFile(extension: 'csv'), 'upload');
+
+        $this->assertSame(RuleVerdict::OTHER_FORMAT, $probe->verdicts[0]->verdict);
+        $this->assertSame([], $probe->applying());
+    }
+
+    public function test_the_probe_names_a_failed_precheck(): void
+    {
+        $this->usePolicy(['precheck' => ['command' => 'qj_check_fails', 'skip_when' => [['packed' => true]]]]);
+
+        $this->assertSame(RuleVerdict::PRECHECK_FAILED, app(Preingest::class)->probe($this->textFile(), 'upload')->verdicts[0]->verdict);
+    }
+
+    /**
+     * run() leaves such a rule out with a line in the log; the probe says
+     * so where the person preparing an import can see it.
+     */
+    public function test_the_probe_names_the_missing_tools(): void
+    {
+        $policy = $this->policy([]);
+        $policy['tools']['sh']['binaries'] = ['qj-no-such-program'];
+        $this->app->instance(FormatPolicyRepository::class, new ConfigFormatPolicyRepository($policy));
+
+        $verdict = app(Preingest::class)->probe($this->textFile(), 'upload')->verdicts[0];
+
+        $this->assertSame(RuleVerdict::TOOLS_MISSING, $verdict->verdict);
+        $this->assertSame(['sh'], $verdict->missingTools);
+    }
+
+    public function test_the_probe_of_a_route_without_rules_identifies_nothing(): void
+    {
+        $this->usePolicy(['exclude_sources' => ['sip_ech']]);
+
+        $probe = app(Preingest::class)->probe($this->textFile(), 'sip_ech');
+
+        $this->assertSame([], $probe->verdicts);
+        $this->assertSame(0, $this->state->identifications);
+    }
+
     public function test_the_checksum_of_a_delivery_is_kept(): void
     {
         $this->usePolicy([]);
@@ -275,6 +349,7 @@ final class PreingestTest extends TestCase
             'commands' => [
                 'qj_identify' => $command('identify', ['handler' => 'qj.identify']),
                 'qj_check' => $command('characterize', ['handler' => 'qj.characterize']),
+                'qj_check_fails' => $command('characterize', ['template' => '{binary} -c \'exit 4\'']),
                 'qj_half' => $command('transform', ['template' => '{binary} -c \'head -c 10 "$1" > "$2"\' qj {source} {target}']),
                 'qj_double' => $command('transform', ['template' => '{binary} -c \'cat "$1" "$1" > "$2"\' qj {source} {target}']),
                 'qj_fail' => $command('transform', ['template' => '{binary} -c \'exit 3\'']),
