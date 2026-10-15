@@ -28,6 +28,11 @@ final class FormatPolicyServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'format-policy');
+        $this->loadTranslationsFrom(__DIR__.'/../lang', 'format-policy');
+
         $this->publishes([__DIR__.'/../config/format-policy.php' => config_path('format-policy.php')], 'format-policy-config');
+        $this->publishes([__DIR__.'/../resources/views' => resource_path('views/vendor/format-policy')], 'format-policy-views');
+        $this->publishes([__DIR__.'/../lang' => $this->app->langPath('vendor/format-policy')], 'format-policy-lang');
     }
 }

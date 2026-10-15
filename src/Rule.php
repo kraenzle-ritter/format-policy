@@ -49,7 +49,6 @@ final readonly class Rule
         public string $original,
         public int $priority,
         public bool $enabledByDefault,
-        public bool $optional,
         public bool $retired,
         public ?string $replaces,
     ) {}
@@ -81,7 +80,6 @@ final readonly class Rule
             original: (string) ($entry['original'] ?? 'replace'),
             priority: (int) ($entry['priority'] ?? 100),
             enabledByDefault: (bool) ($entry['enabled_by_default'] ?? false),
-            optional: (bool) ($entry['optional'] ?? false),
             retired: (bool) ($entry['retired'] ?? false),
             replaces: isset($entry['replaces']) ? (string) $entry['replaces'] : null,
         );

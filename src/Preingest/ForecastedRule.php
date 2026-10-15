@@ -13,7 +13,6 @@ final readonly class ForecastedRule
         public string $rule,
         public string $label,
         public string $description,
-        public bool $optional,
         public int $count,
         public int $total,
     ) {}

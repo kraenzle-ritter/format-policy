@@ -138,8 +138,18 @@ return [
     'rules' => [
 
         'tiff_zip' => [
-            'label' => ['en' => 'Compress TIFF losslessly (Deflate, predictor 2)'],
-            'description' => ['en' => 'Uncompressed TIFF, or LZW without a predictor, as cameras and scanning software deliver it, becomes 38–66 % smaller as Deflate with predictor 2, without a single pixel changing. The converted file becomes the archival master once its pixels are proven identical; the delivered file is discarded, its checksums stay in the event on the medium. Left alone: files already in that form, JPEG-compressed TIFF, bitonal (CCITT G4 compresses better) and BigTIFF. Not applied to SIPs, whose own checksums prove an untouched delivery.'],
+            'label' => [
+                'en' => 'Compress TIFF losslessly (Deflate, predictor 2)',
+                'de' => 'TIFF verlustfrei komprimieren (Deflate, Predictor 2)',
+                'fr' => 'Compresser les TIFF sans perte (Deflate, prédicteur 2)',
+                'it' => 'Comprimere i TIFF senza perdita (Deflate, predittore 2)',
+            ],
+            'description' => [
+                'en' => 'Uncompressed TIFF, or LZW without a predictor, as cameras and scanning software deliver it, becomes 38–66 % smaller as Deflate with predictor 2, without a single pixel changing. The converted file becomes the archival master once its pixels are proven identical; the delivered file is discarded, its checksums stay in the event on the medium. Left alone: files already in that form, JPEG-compressed TIFF, bitonal (CCITT G4 compresses better) and BigTIFF. Not applied to SIPs, whose own checksums prove an untouched delivery.',
+                'de' => 'Unkomprimierte TIFF oder LZW ohne Predictor, wie Kameras und Scan-Software sie liefern, werden mit Deflate und Predictor 2 um 38–66 % kleiner, ohne dass sich ein einziges Pixel ändert. Die umgewandelte Datei wird zum Archivmaster, sobald ihre Pixel als identisch nachgewiesen sind; die gelieferte Datei wird verworfen, ihre Prüfsummen bleiben im Ereignis am Medium. Unverändert bleiben: Dateien, die schon so vorliegen, JPEG-komprimierte TIFF, bitonale Bilder (CCITT G4 komprimiert besser) und BigTIFF. Nicht angewendet auf SIPs, deren eigene Prüfsummen eine unveränderte Ablieferung belegen.',
+                'fr' => 'Les TIFF non compressés, ou en LZW sans prédicteur, tels que les livrent les appareils photo et les logiciels de numérisation, deviennent 38 à 66 % plus petits en Deflate avec prédicteur 2, sans qu\'un seul pixel ne change. Le fichier converti devient le master d\'archivage dès que l\'identité de ses pixels est prouvée ; le fichier livré est écarté, ses sommes de contrôle restent dans l\'événement du média. Restent inchangés : les fichiers déjà sous cette forme, les TIFF compressés en JPEG, les images bitonales (CCITT G4 compresse mieux) et les BigTIFF. Non appliqué aux SIP, dont les propres sommes de contrôle prouvent une livraison intacte.',
+                'it' => 'I TIFF non compressi, o in LZW senza predittore, come li forniscono fotocamere e software di scansione, diventano più piccoli del 38–66 % con Deflate e predittore 2, senza che cambi un solo pixel. Il file convertito diventa il master d\'archivio non appena è dimostrata l\'identità dei suoi pixel; il file consegnato viene scartato, le sue somme di controllo restano nell\'evento del media. Restano invariati: i file già in questa forma, i TIFF compressi in JPEG, le immagini bitonali (CCITT G4 comprime meglio) e i BigTIFF. Non applicato ai SIP, le cui somme di controllo dimostrano una consegna intatta.',
+            ],
             'phase' => 'preingest',
             'match' => [
                 'mime_types' => ['image/tiff'],
@@ -162,7 +172,6 @@ return [
             'original' => 'replace',
             'priority' => 100,
             'enabled_by_default' => false,
-            'optional' => true,
         ],
 
     ],

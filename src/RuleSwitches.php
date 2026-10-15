@@ -47,4 +47,35 @@ final class RuleSwitches
     {
         $this->store->set($rule->key, $on);
     }
+
+    /**
+     * Sets the switches a settings form sent (`rules[<key>]`, as the view
+     * `format-policy::rules` writes it) and returns what changed — for the
+     * calling program's log.
+     *
+     * Only what changes is written: a rule whose value already holds keeps
+     * following its default. Keys the policy does not know, and retired
+     * rules, are ignored.
+     *
+     * @param  array<array-key, mixed>  $input
+     * @return list<array{rule: string, from: bool, to: bool}>
+     */
+    public function apply(array $input): array
+    {
+        $changes = [];
+
+        foreach ($this->policy->rules() as $rule) {
+            if ($rule->retired || ! array_key_exists($rule->key, $input)) {
+                continue;
+            }
+            $on = filter_var($input[$rule->key], FILTER_VALIDATE_BOOLEAN);
+            $was = $this->isInForce($rule);
+            if ($on !== $was) {
+                $this->set($rule, $on);
+                $changes[] = ['rule' => $rule->key, 'from' => $was, 'to' => $on];
+            }
+        }
+
+        return $changes;
+    }
 }

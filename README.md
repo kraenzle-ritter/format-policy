@@ -50,7 +50,6 @@ server is not applied, and a warning is logged.
 use KraenzleRitter\FormatPolicy\Preingest;
 
 $result = app(Preingest::class)->run($path, 'upload', [
-    'skip_rules' => ['tiff_zip'],                               // optional rules the user deselected
     'delivered' => ['algorithm' => 'sha256', 'value' => '…'],   // checksum that came with the file
 ]);
 
@@ -92,6 +91,34 @@ never in force.
 ```php
 $preingest = app(Preingest::class)->withSwitches(new ArraySwitchStore(['tiff_zip' => true]));
 ```
+
+An archive sets its rules once, on a settings page; a single delivery cannot
+leave a rule out. The package gives that page its content and its form, and
+leaves the route, the permission and the log to the program:
+
+```php
+use KraenzleRitter\FormatPolicy\RuleOverview;
+use KraenzleRitter\FormatPolicy\RuleSwitches;
+
+$overview = RuleOverview::for($policy, $store, $runner, $source = null);
+```
+
+```blade
+@include('format-policy::rules', [
+    'overview' => $overview,
+    'editable' => true,                          // false: read only
+    'action' => route('admin.format-policy.update'),
+    'method' => 'PUT',
+    'managedBy' => null,                          // read only: ['text' => 'Set in Anton', 'url' => '…']
+    'sourceLabels' => ['sip_ech' => 'SIP eCH-0160'],
+])
+```
+
+The view is Bootstrap 5 without Livewire and sends `rules[<key>]` = 1 or 0;
+`(new RuleSwitches($policy, $store))->apply($request->input('rules', []))`
+writes what changed and returns it as `rule`, `from`, `to`. Unknown and
+retired keys are ignored. Texts come from `format-policy::rules.*` (de, en,
+fr, it); the catalogue's labels and descriptions carry the same four.
 
 ## Testing
 

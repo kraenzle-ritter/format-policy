@@ -53,11 +53,11 @@ final class Preingest
     }
 
     /**
-     * @param  array{skip_rules?: list<string>, delivered?: array{algorithm: string, value: string}}  $options
+     * @param  array{delivered?: array{algorithm: string, value: string}}  $options
      */
     public function run(string $path, string|BackedEnum $source, array $options = []): PreingestResult
     {
-        $rules = $this->rulesFor($source, $options);
+        $rules = $this->rulesInForce($source);
         if ($rules === []) {
             return PreingestResult::untouched($path);
         }
@@ -96,12 +96,11 @@ final class Preingest
      * The rules that would act on a file — conditions and precheck only,
      * nothing is converted.
      *
-     * @param  array{skip_rules?: list<string>}  $options
      * @return list<PlannedRule>
      */
-    public function plan(string $path, string|BackedEnum $source, array $options = []): array
+    public function plan(string $path, string|BackedEnum $source): array
     {
-        $rules = $this->rulesFor($source, $options);
+        $rules = $this->rulesInForce($source);
         if ($rules === []) {
             return [];
         }
@@ -109,7 +108,7 @@ final class Preingest
         $identification = $this->identify($path);
 
         return array_values(array_map(
-            fn (Rule $rule): PlannedRule => new PlannedRule($rule->key, $rule->label->in(), $rule->description->in(), $rule->optional),
+            fn (Rule $rule): PlannedRule => new PlannedRule($rule->key, $rule->label->in(), $rule->description->in()),
             array_filter($rules, fn (Rule $rule): bool => $this->applies($rule, $path, $identification)),
         ));
     }
@@ -120,8 +119,7 @@ final class Preingest
      *
      * Every rule in force on the route gets a verdict, including those this
      * server lacks the tools for, which run() leaves out silently. What the
-     * prechecks measured comes along, by command. Optional rules are judged
-     * as well: deselecting one is a decision of the run, not of the file.
+     * prechecks measured comes along, by command.
      */
     public function probe(string $path, string|BackedEnum $source): Probe
     {
@@ -136,7 +134,7 @@ final class Preingest
 
         foreach ($admitted as [$rule, $missing]) {
             $verdict = fn (string $verdict, array $condition = []): RuleVerdict => new RuleVerdict(
-                $rule->key, $rule->label->in(), $rule->description->in(), $rule->optional, $verdict, $condition, $missing,
+                $rule->key, $rule->label->in(), $rule->description->in(), $verdict, $condition, $missing,
             );
 
             if (! $rule->matchesFormat($identification->mimeType, $identification->pronomId, pathinfo($path, PATHINFO_EXTENSION))) {
@@ -200,32 +198,6 @@ final class Preingest
         }
 
         return $admitted;
-    }
-
-    /**
-     * The rules in force for this run: those of the route, without the
-     * optional ones the run deselected. A mandatory rule cannot be
-     * deselected.
-     *
-     * @param  array{skip_rules?: list<string>}  $options
-     * @return list<Rule>
-     */
-    private function rulesFor(string|BackedEnum $source, array $options): array
-    {
-        $skip = (array) ($options['skip_rules'] ?? []);
-        $rules = [];
-
-        foreach ($this->rulesInForce($source) as $rule) {
-            if (in_array($rule->key, $skip, true)) {
-                if ($rule->optional) {
-                    continue;
-                }
-                logger()->warning('Preingest: the mandatory rule «'.$rule->key.'» cannot be deselected; applied');
-            }
-            $rules[] = $rule;
-        }
-
-        return $rules;
     }
 
     private function identify(string $file): Identification

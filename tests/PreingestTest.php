@@ -208,12 +208,14 @@ final class PreingestTest extends TestCase
         $this->assertCount(1, $this->preingest($this->textFile(), 'media_add')->outcomes);
     }
 
-    public function test_an_optional_rule_can_be_deselected_a_mandatory_one_cannot(): void
+    /**
+     * There is no deselection per run any more (anton#655): an archive sets
+     * its rules once, a delivery cannot leave one out.
+     */
+    public function test_a_run_cannot_leave_out_a_rule_in_force(): void
     {
         $this->usePolicy(['optional' => true]);
-        $this->assertSame([], $this->preingest($this->textFile(), 'upload', ['skip_rules' => ['qj_half']])->outcomes);
 
-        $this->usePolicy(['optional' => false]);
         $this->assertCount(1, $this->preingest($this->textFile(), 'upload', ['skip_rules' => ['qj_half']])->outcomes);
     }
 
@@ -228,7 +230,7 @@ final class PreingestTest extends TestCase
 
     public function test_the_plan_names_the_rule_and_changes_nothing(): void
     {
-        $this->usePolicy(['optional' => true]);
+        $this->usePolicy([]);
         $file = $this->textFile();
         $md5 = md5_file($file);
         $before = (array) glob(storage_path('framework/preingest/*'));
@@ -238,14 +240,13 @@ final class PreingestTest extends TestCase
         $this->assertCount(1, $plan);
         $this->assertSame('qj_half', $plan[0]->rule);
         $this->assertSame('Halves a text file.', $plan[0]->description);
-        $this->assertTrue($plan[0]->optional);
         $this->assertSame($md5, md5_file($file));
         $this->assertSame($before, (array) glob(storage_path('framework/preingest/*')), 'no working directory');
     }
 
     public function test_the_probe_says_a_rule_applies_and_changes_nothing(): void
     {
-        $this->usePolicy(['optional' => true, 'precheck' => ['command' => 'qj_check', 'skip_when' => [['packed' => true]]]]);
+        $this->usePolicy(['precheck' => ['command' => 'qj_check', 'skip_when' => [['packed' => true]]]]);
         $file = $this->textFile();
         $md5 = md5_file($file);
         $before = (array) glob(storage_path('framework/preingest/*'));
@@ -255,7 +256,7 @@ final class PreingestTest extends TestCase
         $this->assertSame('x-fmt/111', $probe->identification->pronomId);
         $this->assertSame(filesize($file), $probe->size);
         $this->assertCount(1, $probe->verdicts);
-        $this->assertSame(['qj_half', RuleVerdict::APPLIES, true], [$probe->verdicts[0]->rule, $probe->verdicts[0]->verdict, $probe->verdicts[0]->optional]);
+        $this->assertSame(['qj_half', RuleVerdict::APPLIES], [$probe->verdicts[0]->rule, $probe->verdicts[0]->verdict]);
         $this->assertCount(1, $probe->applying());
         $this->assertSame(['packed' => false], $probe->characteristics['qj_check']['facts'], 'what the precheck measured');
         $this->assertSame($md5, md5_file($file));
@@ -390,7 +391,7 @@ final class PreingestTest extends TestCase
     }
 
     /**
-     * @param  array{skip_rules?: list<string>, delivered?: array{algorithm: string, value: string}}  $options
+     * @param  array<string, mixed>  $options
      */
     private function preingest(string $file, string $source, array $options = []): PreingestResult
     {

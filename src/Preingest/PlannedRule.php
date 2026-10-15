@@ -14,6 +14,5 @@ final readonly class PlannedRule
         public string $rule,
         public string $label,
         public string $description,
-        public bool $optional,
     ) {}
 }

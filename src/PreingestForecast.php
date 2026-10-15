@@ -39,7 +39,7 @@ final class PreingestForecast
         foreach ($rules as $rule) {
             $count = count(array_filter($formats, fn (array $format): bool => $rule->matchesFormat($format[0], null, $format[1])));
             if ($count > 0) {
-                $forecast[] = new ForecastedRule($rule->key, $rule->label->in(), $rule->description->in(), $rule->optional, $count, count($files));
+                $forecast[] = new ForecastedRule($rule->key, $rule->label->in(), $rule->description->in(), $count, count($files));
             }
         }
 

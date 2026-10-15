@@ -10,6 +10,13 @@ All notable changes to this package are documented here. The format follows
 
 ### Added
 - `Preingest::probe()`: a dry run for one file that converts nothing. It returns a `Probe` with the identification, the facts each precheck measured (with tool and version), and a `RuleVerdict` for every rule in force on the route: `applies`, `other_format`, `precheck` (with the vetoing `skip_when` entry), `precheck_failed` or `tools_missing` (with the tools). Rules whose tools are missing are named instead of being left out.
+- `RuleOverview::for($policy, $store, $runner, ?$source)`: the rules as an archive sees them on its settings page — label, description, phase, default, the tenant's override, in force, whether a route is admitted, the routes, and the tools this server lacks. Retired rules are left out (anton#655).
+- View `format-policy::rules` (Bootstrap 5, no Livewire): one switch per rule as `rules[<key>]`, or read only with a note where the rules are set (`managedBy`). Translations `format-policy::rules.*` in de, en, fr, it.
+- `RuleSwitches::apply(array $input)`: sets what a settings form sent and returns the changes; unknown and retired keys are ignored, unchanged values are not written.
+- `tiff_zip` has its label and description in German, French and Italian.
+
+### Removed
+- Deselecting a rule per run: the option `skip_rules` of `run()` and `plan()` and the rule attribute `optional` (with it the `optional` field of `ForecastedRule` and `PlannedRule`). An archive sets its rules once in its settings; a delivery cannot leave one out (anton#655). An `optional` key in a policy is ignored.
 
 ## [0.1.0] - 2026-10-08
 

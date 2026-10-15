@@ -9,7 +9,7 @@ namespace KraenzleRitter\FormatPolicy;
  *
  * Kept as a language map from the start (`['en' => …]`), the shape of
  * Anton's translatable columns (spatie/laravel-translatable), so it becomes a JSON column without change.
- * For now only English is written; any other language falls back to it.
+ * English is required; a language without a text of its own falls back to it.
  */
 final readonly class LocalizedText
 {

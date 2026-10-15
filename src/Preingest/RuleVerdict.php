@@ -35,7 +35,6 @@ final readonly class RuleVerdict
         public string $rule,
         public string $label,
         public string $description,
-        public bool $optional,
         public string $verdict,
         public array $condition = [],
         public array $missingTools = [],
