@@ -35,6 +35,8 @@
     @if ($entries === [])
         <p class="text-muted">{{ __('format-policy::rules.none') }}</p>
     @else
+        <p class="small text-muted format-policy-order">{{ __('format-policy::rules.order_note') }}</p>
+
         @if ($editable)
             <form method="POST" action="{{ $action }}">
                 @csrf
@@ -48,7 +50,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start gap-3">
                         <div>
-                            <h3 class="h6 mb-1">{{ $entry->label->in() }}</h3>
+                            <h3 class="h6 mb-1"><span class="text-muted">{{ $entry->position }}.</span> {{ $entry->label->in() }}</h3>
                             <div class="small">
                                 @if ($entry->inForce)
                                     <span class="badge bg-success">{{ __('format-policy::rules.in_force') }}</span>
@@ -74,6 +76,81 @@
                     </div>
 
                     <p class="small mt-2 mb-2">{{ $entry->description->in() }}</p>
+
+                    {{-- The rule as «if … except … then …». --}}
+                    <dl class="row small mb-2 format-policy-if-then">
+                        <dt class="col-sm-2">{{ __('format-policy::rules.if') }}</dt>
+                        <dd class="col-sm-10 mb-1">
+                            {{ __('format-policy::rules.if_format') }}
+                            @if ($entry->mimeTypes !== [])
+                                <span class="d-block">{{ __('format-policy::rules.mime_types') }}: <code>{{ implode(', ', $entry->mimeTypes) }}</code></span>
+                            @endif
+                            @if ($entry->pronomIds !== [])
+                                <span class="d-block">{{ __('format-policy::rules.pronom_ids') }}: <code>{{ implode(', ', $entry->pronomIds) }}</code></span>
+                            @endif
+                            @if ($entry->extensions !== [])
+                                <span class="d-block">{{ __('format-policy::rules.extensions') }}: <code>{{ implode(', ', array_map(fn (string $extension): string => '.'.$extension, $entry->extensions)) }}</code></span>
+                            @endif
+                        </dd>
+
+                        @if ($entry->skipWhen !== [])
+                            <dt class="col-sm-2">{{ __('format-policy::rules.except') }}</dt>
+                            <dd class="col-sm-10 mb-1">
+                                {{ __('format-policy::rules.except_note', ['check' => $entry->precheck?->label->in() ?? '']) }}
+                                <ul class="mb-0 ps-3">
+                                    @foreach ($entry->skipWhen as $condition)
+                                        <li>{{ \KraenzleRitter\FormatPolicy\ConditionText::of($condition) }}</li>
+                                    @endforeach
+                                </ul>
+                            </dd>
+                        @endif
+
+                        <dt class="col-sm-2">{{ __('format-policy::rules.then') }}</dt>
+                        <dd class="col-sm-10 mb-1">
+                            <ol class="mb-1 ps-3">
+                                @foreach ($entry->steps as $step)
+                                    <li>{{ $step->label->in() }}</li>
+                                @endforeach
+                            </ol>
+                            @if ($entry->verify !== null)
+                                <span class="d-block">{{ __('format-policy::rules.verify', ['check' => $entry->verify->label->in()]) }}</span>
+                            @endif
+                            @if ($entry->requireSmaller)
+                                <span class="d-block">{{ __('format-policy::rules.require_smaller') }}</span>
+                            @endif
+                            <span class="d-block">{{ $entry->keepsOriginal() ? __('format-policy::rules.original_keep') : __('format-policy::rules.original_replace') }}</span>
+                        </dd>
+                    </dl>
+
+                    {{-- The commands behind the words: tool, version and the call. --}}
+                    <details class="small format-policy-technical">
+                        <summary class="text-muted">{{ __('format-policy::rules.technical') }}</summary>
+                        <table class="table table-sm small mt-2 mb-0">
+                            <thead>
+                                <tr>
+                                    <th>{{ __('format-policy::rules.command') }}</th>
+                                    <th>{{ __('format-policy::rules.tool') }}</th>
+                                    <th>{{ __('format-policy::rules.call') }}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (array_filter([$entry->precheck, ...$entry->steps, $entry->verify]) as $step)
+                                    <tr>
+                                        <td><code>{{ $step->command }}</code><span class="d-block text-muted">{{ $step->label->in() }}</span></td>
+                                        <td class="text-nowrap">
+                                            {{ $step->toolLabel?->in() ?? $step->tool }}
+                                            @if ($step->version !== null)
+                                                {{ $step->version }}
+                                            @else
+                                                <span class="text-warning-emphasis">({{ __('format-policy::rules.tool_missing') }})</span>
+                                            @endif
+                                        </td>
+                                        <td><code class="text-break">{{ $step->call }}</code></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </details>
 
                     <div class="small text-muted">
                         {{ __('format-policy::rules.routes') }}:

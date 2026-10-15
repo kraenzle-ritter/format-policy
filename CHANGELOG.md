@@ -6,6 +6,14 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-15
+
+### Added
+- The settings view shows each rule as «if … except … then …»: the formats it acts on (MIME type, PRONOM, extension), the `skip_when` conditions in words with the precheck that finds them, the steps in order, the check, whether the result must be smaller and what becomes of the original. The rules are numbered in the order they run in, with a note that every matching rule runs, each on the result of the one before. A collapsed «Technical» section names each command with its tool, version and call (template, or handler class).
+- `RuleOverviewEntry` carries `position`, `mimeTypes`, `pronomIds`, `extensions`, `precheck`, `skipWhen`, `steps`, `verify`, `original` and `requireSmaller`; `RuleStep` describes one command (label, tool, version, call).
+- `ConditionText::of()` renders a `skip_when` entry in words («Kompression Deflate, Predictor 2»); translations `format-policy::facts.*` in de, en, fr, it.
+- The commands of the catalogue are labelled in German, French and Italian.
+
 ## [0.2.0] - 2026-10-15
 
 ### Added

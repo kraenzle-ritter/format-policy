@@ -6,6 +6,7 @@ namespace KraenzleRitter\FormatPolicy\Tests;
 
 use KraenzleRitter\FormatPolicy\ArraySwitchStore;
 use KraenzleRitter\FormatPolicy\CommandRunner;
+use KraenzleRitter\FormatPolicy\ConditionText;
 use KraenzleRitter\FormatPolicy\ConfigFormatPolicyRepository;
 use KraenzleRitter\FormatPolicy\FormatPolicyRepository;
 use KraenzleRitter\FormatPolicy\RuleOverview;
@@ -132,6 +133,66 @@ final class RuleOverviewTest extends TestCase
             $this->assertArrayHasKey($locale, $rule->description->texts, $locale);
         }
         $this->assertSame('TIFF verlustfrei komprimieren (Deflate, Predictor 2)', $rule->label->in('de'));
+    }
+
+    /**
+     * Every rule that matches runs, one after the other; the page says so
+     * and numbers the rules in that order.
+     */
+    public function test_the_entries_come_in_the_order_the_rules_run_in(): void
+    {
+        $entries = $this->overview()->entries;
+
+        $this->assertSame([1, 2, 3, 4], array_map(fn (RuleOverviewEntry $entry): int => $entry->position, $entries));
+        $this->assertSame('qj_off_by_default', $entries[0]->key, 'highest priority first');
+
+        $html = view('format-policy::rules', ['overview' => $this->overview(), 'editable' => false])->render();
+        $this->assertStringContainsString(__('format-policy::rules.order_note'), $html);
+        $this->assertStringContainsString('<span class="text-muted">1.</span>', $html);
+    }
+
+    /**
+     * tiff_zip from the catalogue, as an archive reads it: if a TIFF, except
+     * where the precheck finds these facts, then these steps, this check,
+     * and the original replaced — and behind it the commands themselves.
+     */
+    public function test_a_rule_reads_as_if_except_then_with_its_commands(): void
+    {
+        app()->setLocale('de');
+        $policy = new ConfigFormatPolicyRepository;
+        $entry = RuleOverview::for($policy, new ArraySwitchStore, app(CommandRunner::class))->entries[0];
+
+        $this->assertSame('tiff_zip', $entry->key);
+        $this->assertSame(['tiffcp_zip', 'exiftool_copy_metadata', 'exiftool_drop_added'], array_map(fn ($step): string => $step->command, $entry->steps));
+        $this->assertSame('tiffcp -c zip:2 {source} {target}', $entry->steps[0]->call);
+        $this->assertSame('DropAddedExifFields', $entry->steps[2]->call, 'a command PHP runs is named by its handler');
+        $this->assertSame('pixel_signature', $entry->verify?->command);
+        $this->assertSame('tiff_characteristics', $entry->precheck?->command);
+        $this->assertFalse($entry->keepsOriginal());
+
+        $html = view('format-policy::rules', ['overview' => new RuleOverview([$entry]), 'editable' => false])->render();
+
+        foreach ([
+            'Wenn', 'Ausser', 'Dann', 'fmt/353', '.tif',
+            'Kompression Deflate, Predictor 2', 'Kompression JPEG', 'Bit je Kanal 1', 'BigTIFF ja',
+            'TIFF als Deflate mit Predictor 2 neu schreiben', 'Pixel-Signaturen vergleichen',
+            __('format-policy::rules.original_replace'), __('format-policy::rules.require_smaller'),
+            __('format-policy::rules.technical'), 'tiffcp -c zip:2 {source} {target}', 'PixelSignature',
+        ] as $expected) {
+            $this->assertStringContainsString(e($expected), $html, $expected);
+        }
+    }
+
+    public function test_a_condition_reads_as_words(): void
+    {
+        app()->setLocale('de');
+
+        $this->assertSame('Kompression Deflate, Predictor 2', ConditionText::of(['compression' => 'deflate', 'predictor' => 2]));
+        $this->assertSame('Bit je Kanal 1', ConditionText::of(['bits_per_sample' => 1]));
+        $this->assertSame('BigTIFF ja', ConditionText::of(['bigtiff' => true]));
+        $this->assertSame('Kompression LZW / JPEG', ConditionText::of(['compression' => ['lzw', 'jpeg']]));
+        $this->assertSame('Kompression unkomprimiert', ConditionText::of(['compression' => 'none']));
+        $this->assertSame('qj_fact 3', ConditionText::of(['qj_fact' => 3]), 'a fact without a label is named by its key');
     }
 
     private function overview(?string $source = null): RuleOverview

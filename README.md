@@ -114,6 +114,11 @@ $overview = RuleOverview::for($policy, $store, $runner, $source = null);
 ])
 ```
 
+The view numbers the rules in the order they run in — every rule that matches
+a file acts on it, each on the result of the one before — and shows each as
+«if … except … then …», with the commands, tools and calls in a collapsed
+section. `ConditionText::of()` renders a `skip_when` entry in words.
+
 The view is Bootstrap 5 without Livewire and sends `rules[<key>]` = 1 or 0;
 `(new RuleSwitches($policy, $store))->apply($request->input('rules', []))`
 writes what changed and returns it as `rule`, `from`, `to`. Unknown and

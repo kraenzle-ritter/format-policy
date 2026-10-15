@@ -78,7 +78,7 @@ return [
     'commands' => [
 
         'siegfried' => [
-            'label' => ['en' => 'Identify the format'],
+            'label' => ['en' => 'Identify the format', 'de' => 'Format bestimmen', 'fr' => 'Identifier le format', 'it' => 'Identificare il formato'],
             'description' => ['en' => 'Runs Siegfried on a file and returns its PRONOM id, MIME type and format name.'],
             'kind' => 'identify',
             'tool' => 'siegfried',
@@ -87,7 +87,7 @@ return [
         ],
 
         'tiff_characteristics' => [
-            'label' => ['en' => 'Read TIFF properties'],
+            'label' => ['en' => 'Read TIFF properties', 'de' => 'TIFF-Merkmale lesen', 'fr' => 'Lire les propriétés du TIFF', 'it' => 'Leggere le proprietà del TIFF'],
             'description' => ['en' => 'Reads compression, predictor, bits per sample and whether the file is a BigTIFF, so that a rule can leave files alone that are already in the target form or that the conversion would not serve.'],
             'kind' => 'characterize',
             'tool' => 'exiftool',
@@ -96,7 +96,7 @@ return [
         ],
 
         'tiffcp_zip' => [
-            'label' => ['en' => 'Rewrite TIFF as Deflate with predictor 2'],
+            'label' => ['en' => 'Rewrite TIFF as Deflate with predictor 2', 'de' => 'TIFF als Deflate mit Predictor 2 neu schreiben', 'fr' => 'Réécrire le TIFF en Deflate avec prédicteur 2', 'it' => 'Riscrivere il TIFF in Deflate con predittore 2'],
             'description' => ['en' => 'Writes a copy of the TIFF with lossless Deflate (Zip) compression and horizontal predictor 2. The pixels stay the same; EXIF sub-IFD, XMP and IPTC are lost here and restored by the next step.'],
             'kind' => 'transform',
             'tool' => 'tiffcp',
@@ -105,7 +105,7 @@ return [
         ],
 
         'exiftool_copy_metadata' => [
-            'label' => ['en' => 'Copy metadata from the original'],
+            'label' => ['en' => 'Copy metadata from the original', 'de' => 'Metadaten der gelieferten Datei übernehmen', 'fr' => 'Reprendre les métadonnées du fichier livré', 'it' => 'Riprendere i metadati del file consegnato'],
             'description' => ['en' => 'Copies all metadata of the delivered file into the converted one, except the IFD1 preview tags (tiffcp keeps the preview itself) and the IPTC character set, which exiftool would otherwise add. The XMP toolkit is copied back explicitly: exiftool puts its own name there whenever it writes XMP.'],
             'kind' => 'transform',
             'tool' => 'exiftool',
@@ -115,7 +115,7 @@ return [
         ],
 
         'exiftool_drop_added' => [
-            'label' => ['en' => 'Remove fields ExifTool added'],
+            'label' => ['en' => 'Remove fields ExifTool added', 'de' => 'Von ExifTool ergänzte Felder entfernen', 'fr' => 'Supprimer les champs ajoutés par ExifTool', 'it' => 'Rimuovere i campi aggiunti da ExifTool'],
             'description' => ['en' => 'ExifTool fills in mandatory fields the original never had (ColorSpace, ComponentsConfiguration, FlashpixVersion, EnvelopeRecordVersion). They are removed again where the original lacks them, so the metadata is the delivered one.'],
             'kind' => 'transform',
             'tool' => 'exiftool',
@@ -125,7 +125,7 @@ return [
         ],
 
         'pixel_signature' => [
-            'label' => ['en' => 'Compare pixel signatures'],
+            'label' => ['en' => 'Compare pixel signatures', 'de' => 'Pixel-Signaturen vergleichen', 'fr' => 'Comparer les signatures des pixels', 'it' => 'Confrontare le firme dei pixel'],
             'description' => ['en' => 'Computes a signature of the decoded pixels of every page of the original and the result. They must be identical: a lossless conversion that changed a pixel is no conversion to keep.'],
             'kind' => 'verify',
             'tool' => 'imagemagick',
