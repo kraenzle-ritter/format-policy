@@ -3,6 +3,7 @@
 use KraenzleRitter\FormatPolicy\Handlers\DropAddedExifFields;
 use KraenzleRitter\FormatPolicy\Handlers\PixelSignature;
 use KraenzleRitter\FormatPolicy\Handlers\SiegfriedIdentify;
+use KraenzleRitter\FormatPolicy\Handlers\StreamSignature;
 use KraenzleRitter\FormatPolicy\Handlers\TiffCharacteristics;
 
 /*
@@ -73,6 +74,14 @@ return [
             'version_pattern' => '/siegfried (\d+(?:\.\d+)+)/',
         ],
 
+        'ffmpeg' => [
+            'label' => ['en' => 'FFmpeg'],
+            'description' => ['en' => 'Reads, converts and decodes audio and video. Used here to hash the decoded frames of every stream (ffmpeg) and to read the streams of a file (ffprobe, beside it), which proves that a lossless conversion kept every sample and every pixel.'],
+            'binaries' => ['ffmpeg'],
+            'version_command' => '{binary} -version',
+            'version_pattern' => '/ffmpeg version n?(\d+(?:\.\d+)+)/',
+        ],
+
     ],
 
     'commands' => [
@@ -131,6 +140,15 @@ return [
             'tool' => 'imagemagick',
             'handler' => PixelSignature::class,
             'timeout' => 600,
+        ],
+
+        'stream_signature' => [
+            'label' => ['en' => 'Compare stream signatures', 'de' => 'Prüfsummen der Spuren vergleichen', 'fr' => 'Comparer les sommes de contrôle des pistes', 'it' => 'Confrontare le somme di controllo delle tracce'],
+            'description' => ['en' => 'Computes an MD5 of the decoded frames of every audio and video stream of the original and the result, and compares the streams, channels, sample rate, picture size, frame rate and duration. They must be identical: a container change, FFV1 or FLAC keeps every sample and every pixel.'],
+            'kind' => 'verify',
+            'tool' => 'ffmpeg',
+            'handler' => StreamSignature::class,
+            'timeout' => 3600,
         ],
 
     ],

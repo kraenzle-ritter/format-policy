@@ -41,7 +41,8 @@ php artisan vendor:publish --tag=format-policy-config   # optional
 ```
 
 Tools used by the catalogue: `sf` (Siegfried), `tiffcp` (libtiff-tools),
-`exiftool`, `magick` (ImageMagick 7). A rule whose tools are missing on the
+`exiftool`, `magick` (ImageMagick 7), and for the verify command
+`stream_signature` `ffmpeg` with `ffprobe` beside it. A rule whose tools are missing on the
 server is not applied, and a warning is logged.
 
 ## Usage

@@ -6,6 +6,17 @@ All notable changes to this package are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-10-23
+
+### Added
+- Verify command `stream_signature` (handler `StreamSignature`, tool `ffmpeg`): proves a lossless conversion of audio and video by an MD5 of the decoded frames of every audio and video stream (`ffmpeg -f streamhash`), sound as 64-bit float so that a 24-bit WAV and its FLAC hash alike, pictures in their decoded pixel format, no frame dropped or repeated. Before the hashes, ffprobe (beside ffmpeg) compares the number and kind of streams, channels, sample rate, width, height, frame rate and the duration (within 0.1 s). For a rule converting to a container or a lossless codec (MKV, FFV1, FLAC); the catalogue has no such rule yet (anton#717).
+- Tool `ffmpeg`.
+
+## [0.2.2] - 2026-10-16
+
+### Changed
+- Allows Laravel 13.
+
 ## [0.2.1] - 2026-10-15
 
 ### Added
