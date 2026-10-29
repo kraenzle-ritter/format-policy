@@ -1,5 +1,10 @@
 # kraenzle-ritter/format-policy
 
+[![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
+[![Downloads](https://img.shields.io/packagist/dt/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
+[![License](https://img.shields.io/github/license/kraenzle-ritter/format-policy)](LICENSE)
+[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-blue)](https://www.php.net/)
+
 A format policy registry and preingest for Laravel. Used by Anton (archival
 description) and agate (SIP preparation), so that both apply the same rules
 under the same keys.
