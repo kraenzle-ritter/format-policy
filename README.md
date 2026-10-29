@@ -1,5 +1,12 @@
 # kraenzle-ritter/format-policy
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="art/eule-dark.png">
+    <img src="art/eule.png" alt="A tawny owl, drawn in the style of a wood engraving" width="240">
+  </picture>
+</p>
+
 [![CI](https://github.com/kraenzle-ritter/format-policy/actions/workflows/ci.yml/badge.svg)](https://github.com/kraenzle-ritter/format-policy/actions/workflows/ci.yml)
 [![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
 [![Downloads](https://img.shields.io/packagist/dt/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
