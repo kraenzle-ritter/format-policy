@@ -34,7 +34,9 @@ final class StreamSignatureTest extends TestCase
 
     protected function tearDown(): void
     {
-        exec('rm -rf '.escapeshellarg($this->dir));
+        if (isset($this->dir)) {
+            exec('rm -rf '.escapeshellarg($this->dir));
+        }
 
         parent::tearDown();
     }

@@ -28,6 +28,14 @@ jobs:
 
       - run: composer update --prefer-dist --no-progress
 
+      - name: Install the tools the policies call
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q ffmpeg flac imagemagick libimage-exiftool-perl
+          curl -sSL -o /tmp/siegfried.deb https://github.com/richardlehane/siegfried/releases/download/v1.11.9/siegfried_1.11.9-1_amd64.deb
+          sudo apt-get install -y -q /tmp/siegfried.deb
+          sf -version
+
       - run: composer test
 
       - run: composer analyse
