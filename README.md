@@ -1,5 +1,6 @@
 # kraenzle-ritter/format-policy
 
+[![CI](https://github.com/kraenzle-ritter/format-policy/actions/workflows/ci.yml/badge.svg)](https://github.com/kraenzle-ritter/format-policy/actions/workflows/ci.yml)
 [![Latest Version](https://img.shields.io/packagist/v/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
 [![Downloads](https://img.shields.io/packagist/dt/kraenzle-ritter/format-policy)](https://packagist.org/packages/kraenzle-ritter/format-policy)
 [![License](https://img.shields.io/github/license/kraenzle-ritter/format-policy)](LICENSE)
